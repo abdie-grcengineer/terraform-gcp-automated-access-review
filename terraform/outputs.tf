@@ -1,6 +1,7 @@
 # Outputs make Terraform's resource attributes available after apply.
 # They are queried with `terraform output -raw NAME` and used by the bash
 # scripts to find the resources they need to interact with.
+# (CI verification trigger: pipeline including apply step.)
 
 output "report_bucket_name" {
   description = "Name of the GCS bucket storing access review reports"
