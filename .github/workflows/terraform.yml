@@ -1,0 +1,120 @@
+name: Terraform Plan + OPA Policy Gate (GCP)
+
+on:
+  # workflow_dispatch lets you manually trigger the workflow from the GitHub UI.
+  # Always include this so you have a manual escape hatch (lesson learned from AWS run).
+  workflow_dispatch:
+
+  pull_request:
+    branches: [main]
+    paths:
+      - "terraform/**"
+      - "policy/**"
+      - "src/function/**"
+      - ".github/workflows/terraform.yml"
+
+  push:
+    branches: [main]
+    paths:
+      - "terraform/**"
+      - "policy/**"
+      - "src/function/**"
+      - ".github/workflows/terraform.yml"
+
+permissions:
+  # id-token: write is REQUIRED for Workload Identity Federation.
+  # Without it, GitHub Actions cannot mint the OIDC token GCP needs.
+  id-token: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  plan-and-policy-check:
+    name: Plan + Policy Gate
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # === GCP authentication via Workload Identity Federation ===
+      # Equivalent to AWS's aws-actions/configure-aws-credentials with role-to-assume.
+      # Trades the GitHub OIDC token for short-lived GCP credentials by impersonating
+      # the configured service account. No long-lived JSON keys stored anywhere.
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      # Setup the gcloud CLI on the runner so we can run gcloud commands later.
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.10.0
+
+      - name: Setup Conftest
+        run: |
+          wget -q https://github.com/open-policy-agent/conftest/releases/download/v0.56.0/conftest_0.56.0_Linux_x86_64.tar.gz
+          tar xzf conftest_0.56.0_Linux_x86_64.tar.gz
+          sudo mv conftest /usr/local/bin/
+
+      # === Lint stages: fmt + tflint ===
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: v0.55.1
+
+      - name: TFLint
+        run: |
+          tflint --init
+          tflint --recursive
+
+      # === Terraform plan + policy gate ===
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Plan
+        env:
+          # TF_VAR_<name> sets variable values via env vars. Required variables
+          # in CI must come from secrets, not from gitignored .tfvars files.
+          # (Lesson learned from AWS run: missing CI value caused a silent hang.)
+          TF_VAR_project_id:      ${{ secrets.GCP_PROJECT_ID }}
+          TF_VAR_recipient_email: ${{ secrets.RECIPIENT_EMAIL }}
+        run: |
+          terraform plan -out=tfplan -no-color -input=false
+          terraform show -json tfplan > tfplan.json
+
+      - name: OPA / Conftest Policy Gate
+        run: conftest test --policy ../policy --all-namespaces tfplan.json
+
+      # Save the plan as an artifact so it is retained as audit evidence.
+      # if: always() means this runs even if a previous step failed, which is
+      # useful for "show me the plan that was rejected by the gate."
+      - name: Upload plan artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan
+          path: |
+            terraform/tfplan
+            terraform/tfplan.json
+          retention-days: 30
+
+      # Apply only on push to main, only if every previous step (including the
+      # OPA gate) passed. PRs run plan + gate but never apply.
+      - name: Apply (only on push to main, after gate passes)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          TF_VAR_project_id:      ${{ secrets.GCP_PROJECT_ID }}
+          TF_VAR_recipient_email: ${{ secrets.RECIPIENT_EMAIL }}
+        run: terraform apply tfplan

@@ -1,0 +1,12 @@
+functions-framework==3.*
+google-cloud-storage==2.*
+google-cloud-asset==3.*
+google-cloud-securitycenter==1.*
+google-cloud-resource-manager==1.*
+google-cloud-iam==2.*
+google-cloud-logging==3.*
+google-cloud-recommender==2.*
+google-cloud-secret-manager==2.*
+google-genai==0.*
+google-auth==2.*
+requests==2.*

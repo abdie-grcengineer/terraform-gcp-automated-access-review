@@ -1,0 +1,10 @@
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!terraform.tfvars.example
+tfplan
+tfplan.binary
+tfplan.json
+function_source.zip
+.terraform.lock.hcl

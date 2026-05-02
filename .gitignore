@@ -1,0 +1,17 @@
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!terraform.tfvars.example
+tfplan
+tfplan.binary
+tfplan.json
+function_source.zip
+__pycache__/
+*.pyc
+.venv/
+venv/
+.DS_Store
+.env
+oauth_credentials.json
+gmail_token.json

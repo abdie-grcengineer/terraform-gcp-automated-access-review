@@ -1,0 +1,12 @@
+# Copy this file to terraform.tfvars (which is gitignored) and fill in real values.
+# In CI, these values come from GitHub secrets via TF_VAR_<name> env vars.
+
+project_id      = "gcp-access-review-1777695270"
+recipient_email = "you@example.com"
+
+# Optional overrides (defaults shown):
+# region              = "us-central1"
+# schedule_cron       = "0 8 1 * *"
+# schedule_timezone   = "Etc/UTC"
+# gemini_model        = "gemini-2.0-flash-001"
+# name_prefix         = "gcp-access-review"
