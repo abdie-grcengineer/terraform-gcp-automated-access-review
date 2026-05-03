@@ -1,11 +1,6 @@
-# Policy: prevent anyone (especially CI) from binding roles/owner to a service
-# account or user via Terraform. roles/owner is GCP's "primitive role" that
-# grants near-admin access; granting it via IaC is almost always a mistake.
-#
-# This is the GCP equivalent of the AWS iam_no_wildcard.rego policy.
-# AWS uses inline policies with Action/Resource wildcards as the over-permissive
-# pattern; GCP uses role bindings, and the most common over-permissive pattern
-# is granting the primitive roles (owner, editor, viewer) at project scope.
+# Policy: prevent anyone (especially CI) from binding roles/owner, roles/editor,
+# or roles/viewer to a service account or user via Terraform. These are GCP's
+# "primitive roles" and are too broad for least-privilege deployments.
 #
 # Mapping:
 #   NIST 800-53 AC-6 (Least Privilege)

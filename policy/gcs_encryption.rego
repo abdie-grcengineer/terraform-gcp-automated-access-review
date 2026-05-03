@@ -2,11 +2,10 @@
 # evidence from accidental or malicious overwrite.
 #
 # GCS encryption note:
-# GCS encrypts every object at rest by default with Google-managed keys; there is
-# no "encryption disabled" option. This makes the AWS-style encryption policy
-# (check that SSE algorithm is AES256 or aws:kms) unnecessary on GCP. So instead
-# of an SSE algorithm check, we enforce two related controls that genuinely
-# matter on GCP:
+# GCS encrypts every object at rest by default with Google-managed keys; there
+# is no "encryption disabled" option. Therefore the encryption-at-rest control
+# is satisfied by default. What we enforce here are two related controls that
+# do require explicit configuration on GCS:
 #   1. Versioning enabled (protects against tampering and rollback)
 #   2. Lifecycle rule present (enforces retention discipline)
 #
@@ -29,8 +28,6 @@ deny contains msg if {
     some action in resource.change.actions
     action != "delete"
 
-    # Versioning attribute is a list with one element when configured;
-    # when missing entirely, the attribute is null/empty.
     not bucket_has_versioning_enabled(resource.change.after)
 
     msg := sprintf(

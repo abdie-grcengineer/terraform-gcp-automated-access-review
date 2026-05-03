@@ -4,7 +4,8 @@
 # or via TF_VAR_<name> environment variables (which is how CI passes secrets).
 
 # The GCP project where everything gets deployed.
-# In GCP, every resource lives in exactly one project (similar to AWS account).
+# Every GCP resource lives in exactly one project; the project is the resource
+# container and billing boundary.
 variable "project_id" {
   description = "GCP project ID where all resources will be created"
   type        = string
@@ -18,8 +19,8 @@ variable "recipient_email" {
   type        = string
 }
 
-# Default region for regional resources (Cloud Function, Scheduler, etc.)
-# us-central1 is the default because Vertex AI Gemini 2.0 Flash is available there
+# Default region for regional resources (Cloud Function, Scheduler, etc.).
+# us-central1 is the default because Vertex AI Gemini is available there
 # and it is GCP's most feature-complete region.
 variable "region" {
   description = "Default GCP region for regional resources"
@@ -27,9 +28,8 @@ variable "region" {
   default     = "us-central1"
 }
 
-# Cloud Scheduler uses standard cron syntax (NOT AWS rate(...) syntax).
+# Cloud Scheduler uses standard cron syntax.
 # "0 8 1 * *" = at 08:00 UTC on the 1st of every month.
-# Equivalent to AWS's "rate(30 days)" but more precise about timing.
 variable "schedule_cron" {
   description = "Cron expression for the access review schedule"
   type        = string
@@ -57,7 +57,6 @@ variable "gemini_model" {
 }
 
 # Used to prefix all resource names so they're identifiable in the GCP console.
-# Equivalent to ${var.name_prefix} in the AWS Terraform.
 variable "name_prefix" {
   description = "Prefix applied to resource names"
   type        = string

@@ -1,9 +1,9 @@
 """
 Findings from Security Command Center (SCC).
 
-SCC is GCP's equivalent of AWS Security Hub: a single aggregation point for
-security findings across the project. It surfaces misconfigurations,
-vulnerabilities, and threats from various GCP services.
+SCC is a single aggregation point for security findings across the project.
+It surfaces misconfigurations, vulnerabilities, and threats from various
+GCP security services.
 
 Note on SCC tiers:
   - Standard tier: free, includes Security Health Analytics findings

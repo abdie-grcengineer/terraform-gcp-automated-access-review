@@ -1,8 +1,8 @@
 """
 Findings derived from Cloud Audit Logs.
 
-Cloud Audit Logs are GCP's equivalent of AWS CloudTrail: every API call
-against the project is logged. Always-on; no setup required.
+Cloud Audit Logs are always-on; no setup required. Every API call against
+the project is logged.
 
 Checks performed:
   1. Console logins from outside expected IP ranges (sensitive op)

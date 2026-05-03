@@ -1,6 +1,6 @@
 # GCP Automated Access Review
 
-Continuous GCP security posture assessment with policy-as-code guardrails. Same outcome as the AWS version, built natively on Google Cloud Platform.
+Continuous GCP security posture assessment with policy-as-code guardrails. Built natively on Google Cloud Platform.
 
 The system runs on a schedule, pulls findings from native GCP security services, summarizes them with Vertex AI Gemini, archives a CSV in Cloud Storage, and delivers the report by email via the Gmail API. Every infrastructure change is validated against NIST 800-53 / CMMC controls before it touches GCP.
 

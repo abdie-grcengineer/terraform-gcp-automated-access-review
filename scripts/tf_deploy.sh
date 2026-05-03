@@ -1,6 +1,6 @@
 #!/bin/bash
 # Deploy with the OPA policy gate.
-# Same four-step ritual as the AWS version, adapted for GCS state and Conftest.
+# Four-step ritual: plan -> JSON export -> conftest gate -> apply saved plan.
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

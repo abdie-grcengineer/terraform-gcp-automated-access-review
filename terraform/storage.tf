@@ -1,13 +1,12 @@
 # Cloud Storage bucket for storing access review reports.
-# This is the GCP equivalent of the S3 bucket from the AWS version.
 
 # The report bucket itself.
-# Key differences from AWS S3:
-# - GCS bucket names are globally unique across all of GCP, same as S3.
+# Notes on GCS:
+# - Bucket names are globally unique across all of GCP.
 # - Encryption at rest is automatic (Google-managed keys), no separate
-#   resource needed (unlike aws_s3_bucket_server_side_encryption_configuration).
-# - Public access is blocked via a single resource flag (uniform_bucket_level_access)
-#   plus public_access_prevention rather than four separate flags like AWS PAB.
+#   resource needed.
+# - Public access is blocked via uniform_bucket_level_access plus
+#   public_access_prevention.
 resource "google_storage_bucket" "report" {
   name = "${var.name_prefix}-reports-${data.google_project.current.number}"
 
@@ -16,8 +15,7 @@ resource "google_storage_bucket" "report" {
   location = var.region
 
   # UBLA (Uniform Bucket-Level Access) is the modern, recommended setting.
-  # It disables ACLs and enforces IAM-only access control. This is the GCP
-  # equivalent of the four AWS public access block flags.
+  # It disables ACLs and enforces IAM-only access control.
   # When UBLA is true, you cannot accidentally make individual objects public
   # via legacy ACLs. All access goes through IAM bindings only.
   uniform_bucket_level_access = true

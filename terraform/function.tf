@@ -1,17 +1,13 @@
 # The Cloud Function (compute), the trigger pipeline (Cloud Scheduler -> Pub/Sub
 # -> Function), and the source code packaging.
 #
-# Cloud Functions 2nd gen is the GCP equivalent of AWS Lambda. Differences worth
-# knowing:
-# - 2nd gen runs on Cloud Run under the hood, so it inherits Cloud Run's runtime
-#   characteristics (longer timeouts up to 1 hour, more memory).
-# - Source code must be zipped and uploaded to a GCS staging bucket (Lambda lets
-#   you upload the zip directly with the function).
-# - Triggers are configured separately (HTTP, Pub/Sub via Eventarc, etc.).
+# Cloud Functions 2nd gen runs on Cloud Run under the hood. It inherits Cloud
+# Run's runtime characteristics (longer timeouts up to 1 hour, more memory).
+# Source code must be zipped and uploaded to a GCS staging bucket; the function
+# references the GCS object.
 
 # Step 1: Zip the function source directory at plan time.
-# Same pattern as the AWS version's archive_file. Saves us from having to
-# build the zip in CI; Terraform handles it.
+# Saves us from having to build the zip in CI; Terraform handles it.
 data "archive_file" "function_source" {
   type        = "zip"
   source_dir  = "${path.module}/../src/function"
@@ -19,7 +15,7 @@ data "archive_file" "function_source" {
 }
 
 # Step 2: Upload the zip to a GCS staging bucket.
-# Cloud Functions 2nd gen reads source from GCS, not from your local disk.
+# Cloud Functions 2nd gen reads source from GCS, not from local disk.
 # We reuse the report bucket as the staging area to keep resource count down;
 # in production you might want a separate staging bucket for cleanliness.
 resource "google_storage_bucket_object" "function_source" {
@@ -119,7 +115,6 @@ resource "google_cloudfunctions2_function" "access_review" {
 }
 
 # Step 5: Cloud Scheduler job that publishes to the Pub/Sub topic on schedule.
-# This is the GCP equivalent of an EventBridge scheduled rule.
 resource "google_cloud_scheduler_job" "access_review" {
   name        = "${var.name_prefix}-schedule"
   description = "Triggers the access review function every 30 days"

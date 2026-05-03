@@ -1,13 +1,12 @@
 # IAM for the Cloud Function: a service account it runs as, plus the role
 # bindings that give it the permissions it needs to do its job.
 #
-# Big difference from AWS:
-# - In AWS, you write inline JSON policies attached to roles.
-# - In GCP, you bind a principal (the service account) to predefined roles
-#   at a resource scope (project, bucket, function, etc.). The "policy" is
-#   the union of all bindings.
-# - There is no inline IAM policy concept. You either use Google's predefined
-#   roles or define a custom role separately and bind to it.
+# GCP IAM model:
+# - You bind a principal (user, group, service account) to a predefined role
+#   at a resource scope (project, folder, org, individual resource).
+# - The "policy" on a resource is the union of all bindings.
+# - Use predefined roles where possible; custom roles when you need finer-grained
+#   control.
 
 # The service account the Cloud Function runs as.
 # Every Cloud Function 2nd gen needs an attached service account; without it,
@@ -33,7 +32,6 @@ resource "google_project_iam_member" "function_iam_reader" {
 # Permission: read Cloud Asset inventory.
 # Cloud Asset Inventory aggregates all GCP resources across a project and is
 # the most efficient way to enumerate resources for the report.
-# Equivalent in spirit to AWS's IAM list operations + Resource Groups Tagging API.
 resource "google_project_iam_member" "function_asset_viewer" {
   project = var.project_id
   role    = "roles/cloudasset.viewer"
@@ -41,8 +39,8 @@ resource "google_project_iam_member" "function_asset_viewer" {
 }
 
 # Permission: read Security Command Center findings.
-# SCC is GCP's equivalent of AWS Security Hub. Findings include misconfigurations,
-# threats, vulnerabilities. The findingsViewer role is read-only.
+# SCC aggregates findings from multiple GCP security services. Findings include
+# misconfigurations, threats, vulnerabilities. The findingsViewer role is read-only.
 resource "google_project_iam_member" "function_scc_viewer" {
   project = var.project_id
   role    = "roles/securitycenter.findingsViewer"
@@ -51,7 +49,7 @@ resource "google_project_iam_member" "function_scc_viewer" {
 
 # Permission: read Recommender API output.
 # Recommender provides actionable suggestions like "remove this stale IAM grant"
-# or "downgrade this role." It is GCP's nearest equivalent to IAM Access Analyzer.
+# or "downgrade this role." Useful signal for the access review report.
 resource "google_project_iam_member" "function_recommender_viewer" {
   project = var.project_id
   role    = "roles/recommender.iamViewer"
@@ -59,8 +57,9 @@ resource "google_project_iam_member" "function_recommender_viewer" {
 }
 
 # Permission: read Cloud Audit Logs.
-# Audit Logs are GCP's equivalent of CloudTrail. Always-on, no setup required.
-# The privateLogViewer role can read Data Access logs in addition to Admin Activity.
+# Audit Logs are always-on, no setup required. They record every API call
+# against the project. The privateLogViewer role can read Data Access logs in
+# addition to Admin Activity logs.
 resource "google_project_iam_member" "function_logs_viewer" {
   project = var.project_id
   role    = "roles/logging.privateLogViewer"

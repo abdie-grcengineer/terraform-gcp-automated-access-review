@@ -1,9 +1,9 @@
 # Policy: every GCS bucket must use Uniform Bucket-Level Access (UBLA) and
 # enforce public access prevention.
 #
-# Equivalent to the AWS s3_public_access.rego policy. GCS doesn't have the
-# four-flag PAB model AWS S3 has; instead, UBLA + public_access_prevention
-# together provide the equivalent protection.
+# UBLA disables legacy ACLs and enforces IAM-only access control. Combined with
+# public_access_prevention = "enforced", this provides comprehensive protection
+# against public exposure of bucket contents.
 #
 # Mapping:
 #   NIST 800-53 AC-3 (Access Enforcement), SC-7 (Boundary Protection)

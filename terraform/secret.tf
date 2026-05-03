@@ -38,6 +38,5 @@ resource "google_secret_manager_secret" "gmail_token" {
 # 2. The OAuth flow requires a browser dance that is not automatable in Terraform.
 # 3. Token rotation should not require a Terraform run.
 
-# Same pattern is used for any other sensitive runtime config.
-# AWS equivalent: Secrets Manager secrets, often populated outside CFN/TF for
-# the same reasons.
+# Same pattern is used for any other sensitive runtime config: declare the
+# secret resource in Terraform, populate the value out of band.
